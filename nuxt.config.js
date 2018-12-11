@@ -24,12 +24,15 @@ module.exports = {
   /*
   ** Global CSS
   */
-  css: [],
+  css: [
+    // 'bootstrap/dist/css/bootstrap.css',
+    '@fortawesome/fontawesome-free/css/all.css'
+  ],
 
   /*
   ** Plugins to load before mounting the App
   */
-  plugins: [],
+  plugins: [{ src: '~/plugins/localStorage.js', ssr: false }],
 
   /*
   ** Nuxt.js modules

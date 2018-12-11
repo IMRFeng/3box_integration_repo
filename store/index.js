@@ -19,6 +19,7 @@ const createStore = () => {
         state.box = box
       },
       updateProfileData(state, profile) {
+        console.log(`The whole profile is ${JSON.stringify(profile)}`)
         state.profile = profile
       }
     },
@@ -41,30 +42,56 @@ const createStore = () => {
 
       initializeBox({ commit, state, dispatch }, onComplete) {
         const syncComplete = res => {
-          dispatch('updateProfileData')
-          onComplete()
+          dispatch('loadProfileData', onComplete)
         }
 
-        Box.openBox(state.defaultAccount, window.ethereum, {}).then(box => {
-          console.log(box)
-          commit('updateBoxData', box)
-          box.onSyncDone(syncComplete)
-        })
+        Box.openBox(state.defaultAccount, window.ethereum, {}).then(
+          async box => {
+            console.log(box)
+            commit('updateBoxData', box)
+            box.onSyncDone(syncComplete)
+          }
+        )
       },
 
-      updateProfileData({ commit, state }) {
+      loadProfileData({ commit, state }, onComplete) {
         // state.box.public.all().then(profile => {
         //   console.log(`The profile is ${JSON.stringify(profile)}`)
         //   commit('updateProfileData', profile)
         // })
 
-        Box.getProfile(state.defaultAccount, {}).then(profile => {
-          commit('updateProfileData', profile)
-          console.log(`The profile is  ${JSON.stringify(profile)}`)
+        Box.getProfile(state.defaultAccount, {}).then(async profile => {
+          console.log(`The profile is ${JSON.stringify(profile)}`)
+          const email = await state.box.private.get('email')
+          const phoneNumber = await state.box.private.get(
+            'linked-ref.phoneNumber'
+          )
+          commit('updateProfileData', { email, phoneNumber, ...profile })
+
+          typeof onComplete === 'function' ? onComplete() : undefined
+
+          // console.log(`The profile is  ${JSON.stringify(profile)}`)
           Object.entries(profile).map(kv => {
             console.log(`>> ${kv[0]} : ${JSON.stringify(kv[1])}`)
           })
         })
+      },
+      async updateProfileData({ state, commit }, newProfile) {
+        await state.box.public.set('name', newProfile.name)
+        await state.box.public.set('location', newProfile.location)
+        await state.box.public.set('school', newProfile.school)
+        await state.box.public.set(
+          'linked-ref.department',
+          newProfile.department
+        )
+        await state.box.public.set('linked-ref.hireDate', newProfile.hireDate)
+        await state.box.public.set('linked-ref.dob', newProfile.DoB)
+        await state.box.public.set('linked-ref.gender', newProfile.gender)
+        await state.box.private.set('email', newProfile.email)
+        await state.box.private.set(
+          'linked-ref.phoneNumber',
+          newProfile.phoneNumber
+        )
       }
     }
   })

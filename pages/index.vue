@@ -33,6 +33,7 @@ export default {
       console.log(`login via 3box`)
       const onComplete = () => {
         console.log('On Complete')
+        this.$router.push('/profile')
       }
 
       const onError = err => {
@@ -45,7 +46,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="css" scoped>
 .container {
   min-height: 100vh;
   display: flex;
